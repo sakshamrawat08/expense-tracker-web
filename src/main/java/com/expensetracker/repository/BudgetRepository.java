@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BudgetRepository extends JpaRepository<Budget, Long> {
+public interface BudgetRepository
+        extends JpaRepository<Budget, Long> {
 
     List<Budget> findByUserAndMonth(User user, String month);
 
