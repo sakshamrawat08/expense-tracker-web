@@ -2,8 +2,7 @@ package com.expensetracker.controller;
 
 import com.expensetracker.model.Expense;
 import com.expensetracker.model.User;
-import com.expensetracker.service.ExpenseService;
-import com.expensetracker.service.UserService;
+import com.expensetracker.service.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,38 +19,54 @@ public class DashboardController {
 
     private final ExpenseService expenseService;
     private final UserService userService;
+    private final BudgetService budgetService;
+    private final CurrencyService currencyService;
 
     public DashboardController(ExpenseService expenseService,
-                                UserService userService) {
-        this.expenseService = expenseService;
-        this.userService    = userService;
+                                UserService userService,
+                                BudgetService budgetService,
+                                CurrencyService currencyService) {
+        this.expenseService  = expenseService;
+        this.userService     = userService;
+        this.budgetService   = budgetService;
+        this.currencyService = currencyService;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Principal principal, Model model,
-            @RequestParam(required = false) String search) {
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "INR") String currency) {
 
         User user = userService.findByUsername(principal.getName());
-
         List<Expense> expenses = (search != null && !search.isBlank())
                 ? expenseService.searchExpenses(user, search)
                 : expenseService.getAllExpenses(user);
 
-        // ── Calculate this month's total in Java (not Thymeleaf) ──
-        String currentMonth = LocalDate.now().toString().substring(0, 7);
+        String currentMonth = LocalDate.now().toString()
+                .substring(0, 7);
         double monthTotal = expenses.stream()
                 .filter(e -> e.getDate() != null &&
                         e.getDate().toString().startsWith(currentMonth))
-                .mapToDouble(Expense::getAmount)
-                .sum();
+                .mapToDouble(Expense::getAmount).sum();
 
-        model.addAttribute("user",       user);
-        model.addAttribute("expenses",   expenses);
-        model.addAttribute("total",      expenseService.getTotal(user));
-        model.addAttribute("monthTotal", monthTotal);
-        model.addAttribute("search",     search);
-        model.addAttribute("today",      LocalDate.now().toString());
-        model.addAttribute("categories", List.of(
+        double total = expenseService.getTotal(user);
+
+        // Convert to selected currency
+        double convertedTotal = currencyService.convert(total, currency);
+        double convertedMonth = currencyService.convert(monthTotal, currency);
+        String symbol = currencyService.getSymbol(currency);
+
+        model.addAttribute("user",        user);
+        model.addAttribute("expenses",    expenses);
+        model.addAttribute("total",       convertedTotal);
+        model.addAttribute("monthTotal",  convertedMonth);
+        model.addAttribute("symbol",      symbol);
+        model.addAttribute("currency",    currency);
+        model.addAttribute("currencies",  currencyService.getAllCurrencies());
+        model.addAttribute("budgets",     budgetService.getBudgetStatus(user));
+        model.addAttribute("search",      search);
+        model.addAttribute("today",       LocalDate.now().toString());
+        model.addAttribute("categories",  List.of(
                 "Food", "Transport", "Shopping", "Health",
                 "Entertainment", "Utilities", "Education", "Other"));
 
@@ -101,7 +116,8 @@ public class DashboardController {
         Expense expense = expenseService.getAllExpenses(user).stream()
                 .filter(e -> e.getId().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Not found"));
         model.addAttribute("expense", expense);
         model.addAttribute("categories", List.of(
                 "Food", "Transport", "Shopping", "Health",
@@ -133,12 +149,27 @@ public class DashboardController {
     @GetMapping("/api/chart-data")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> chartData(
-            Principal principal) {
+            Principal principal,
+            @RequestParam(defaultValue = "INR") String currency) {
         User user = userService.findByUsername(principal.getName());
+        Map<String, Double> catData = expenseService.getCategoryData(user);
+        Map<String, Double> monData = expenseService.getMonthlyData(user);
+
+        // Convert values
+        Map<String, Double> convertedCat = new LinkedHashMap<>();
+        catData.forEach((k, v) -> convertedCat.put(k,
+                currencyService.convert(v, currency)));
+
+        Map<String, Double> convertedMon = new LinkedHashMap<>();
+        monData.forEach((k, v) -> convertedMon.put(k,
+                currencyService.convert(v, currency)));
+
         Map<String, Object> data = new HashMap<>();
-        data.put("categoryData", expenseService.getCategoryData(user));
-        data.put("monthlyData",  expenseService.getMonthlyData(user));
-        data.put("total",        expenseService.getTotal(user));
+        data.put("categoryData", convertedCat);
+        data.put("monthlyData",  convertedMon);
+        data.put("total", currencyService.convert(
+                expenseService.getTotal(user), currency));
+        data.put("symbol", currencyService.getSymbol(currency));
         return ResponseEntity.ok(data);
     }
 }
