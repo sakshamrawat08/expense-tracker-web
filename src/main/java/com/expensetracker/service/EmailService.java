@@ -27,7 +27,7 @@ public class EmailService {
                 "Happy tracking!\n" +
                 "Expense Tracker Team"
             );
-            mailSender.send(msg);
+            //mailSender.send(msg);
         } catch (Exception e) {
             System.out.println("Email failed: " + e.getMessage());
         }
@@ -49,7 +49,7 @@ public class EmailService {
                 "Visit your dashboard to review your expenses.\n\n" +
                 "Expense Tracker Team"
             );
-            mailSender.send(msg);
+            //mailSender.send(msg);
         } catch (Exception e) {
             System.out.println("Budget alert email failed: " + e.getMessage());
         }
@@ -70,7 +70,7 @@ public class EmailService {
                 "https://expense-tracker-web.up.railway.app\n\n" +
                 "Expense Tracker Team"
             );
-            mailSender.send(msg);
+            //mailSender.send(msg);
         } catch (Exception e) {
             System.out.println("Weekly summary email failed: " + e.getMessage());
         }
