@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Expense Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: #020817;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ── LEFT PANEL ── */
+        .left-panel {
+            width: 55%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .left-panel::before {
+            content: '';
+            position: absolute;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+            top: -100px; left: -100px;
+            border-radius: 50%;
+        }
+
+        .left-panel::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%);
+            bottom: -50px; right: -50px;
+            border-radius: 50%;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 60px;
+            z-index: 1;
+        }
+
+        .brand-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, #6366f1, #22d3ee);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+        }
+
+        .brand-name {
+            font-size: 22px; font-weight: 700;
+            color: #fff; letter-spacing: -0.5px;
+        }
+
+        .hero-text { z-index: 1; text-align: left; width: 100%; max-width: 420px; }
+
+        .hero-text h1 {
+            font-size: 42px; font-weight: 700;
+            color: #fff; line-height: 1.2;
+            margin-bottom: 16px; letter-spacing: -1px;
+        }
+
+        .hero-text h1 span {
+            background: linear-gradient(135deg, #6366f1, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-text p {
+            color: #94a3b8; font-size: 16px;
+            line-height: 1.7; margin-bottom: 40px;
+        }
+
+        .features { display: flex; flex-direction: column; gap: 16px; }
+
+        .feature {
+            display: flex; align-items: center; gap: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px; padding: 14px 18px;
+        }
+
+        .feature-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+
+        .feature-text { font-size: 14px; color: #cbd5e1; font-weight: 500; }
+        .feature-sub  { font-size: 12px; color: #64748b; margin-top: 2px; }
+
+        /* ── RIGHT PANEL ── */
+        .right-panel {
+            width: 45%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            background: #020817;
+        }
+
+        .login-box { width: 100%; max-width: 400px; }
+
+        .login-box h2 {
+            font-size: 28px; font-weight: 700;
+            color: #f1f5f9; margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .login-box .subtitle {
+            color: #64748b; font-size: 15px; margin-bottom: 36px;
+        }
+
+        .alert {
+            padding: 12px 16px; border-radius: 10px;
+            margin-bottom: 20px; font-size: 13px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .alert-error {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5;
+        }
+        .alert-success {
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.3);
+            color: #86efac;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block; font-size: 13px;
+            font-weight: 500; color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .input-wrap { position: relative; }
+
+        .input-wrap input {
+            width: 100%; padding: 13px 16px;
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            color: #f1f5f9; font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-wrap input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+        }
+
+        .input-wrap input::placeholder { color: #334155; }
+
+        .btn-primary {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff; border: none;
+            border-radius: 10px; font-size: 15px;
+            font-weight: 600; cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary:hover   { opacity: 0.92; }
+        .btn-primary:active  { transform: scale(0.99); }
+
+        .divider {
+            display: flex; align-items: center;
+            gap: 12px; margin: 24px 0;
+        }
+        .divider hr { flex: 1; border: none; border-top: 1px solid #1e293b; }
+        .divider span { color: #334155; font-size: 13px; }
+
+        .register-link {
+            text-align: center; font-size: 14px; color: #64748b;
+        }
+        .register-link a {
+            color: #6366f1; text-decoration: none; font-weight: 500;
+        }
+        .register-link a:hover { color: #818cf8; }
+
+        @media (max-width: 900px) {
+            .left-panel { display: none; }
+            .right-panel { width: 100%; background: #0f172a; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left-panel">
+    <div class="brand">
+        <div class="brand-icon">💰</div>
+        <div class="brand-name">Expense Tracker</div>
+    </div>
+    <div class="hero-text">
+        <h1>Track your money<br><span>smarter, faster.</span></h1>
+        <p>Get full control of your expenses with real-time charts, bill uploads, and smart analytics — all in one place.</p>
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon" style="background:rgba(34,211,238,0.1)">📊</div>
+                <div>
+                    <div class="feature-text">Live Charts & Analytics</div>
+                    <div class="feature-sub">Pie, bar and monthly trend charts</div>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon" style="background:rgba(99,102,241,0.1)">📸</div>
+                <div>
+                    <div class="feature-text">Bill Image Upload</div>
+                    <div class="feature-sub">Attach receipts to every expense</div>
+                </div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon" style="background:rgba(34,197,94,0.1)">📄</div>
+                <div>
+                    <div class="feature-text">Export PDF & Excel</div>
+                    <div class="feature-sub">Download your full expense report</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel">
+    <div class="login-box">
+        <h2>Welcome back</h2>
+        <p class="subtitle">Sign in to your account to continue</p>
+
+        <div th:if="${error}"   class="alert alert-error">
+            <span>⚠</span> <span th:text="${error}"></span>
+        </div>
+        <div th:if="${logout}"  class="alert alert-success">
+            <span>✓</span> <span th:text="${logout}"></span>
+        </div>
+        <div th:if="${success}" class="alert alert-success">
+            <span>✓</span> <span th:text="${success}"></span>
+        </div>
+
+        <form method="post" th:action="@{/auth/login}">
+            <div class="form-group">
+                <label>Username</label>
+                <div class="input-wrap">
+                    <input type="text" name="username"
+                           placeholder="Enter your username"
+                           required autofocus/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrap">
+                    <input type="password" name="password"
+                           placeholder="Enter your password"
+                           required/>
+                </div>
+            </div>
+            <button type="submit" class="btn-primary">
+                Sign In →
+            </button>
+        </form>
+
+        <div class="divider">
+            <hr/><span>or</span><hr/>
+        </div>
+
+        <div class="register-link">
+            Don't have an account?
+            <a th:href="@{/auth/register}">Create one free →</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

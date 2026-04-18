@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Expense</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #fff;
+               display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 36px; width: 500px; }
+        h1 { font-size: 20px; margin-bottom: 24px; color: #e2e8f0; }
+        label { display: block; color: #94a3b8; font-size: 12px; margin-bottom: 5px; }
+        input, select {
+            width: 100%; padding: 10px 14px; background: #0f172a;
+            border: 1px solid #334155; border-radius: 8px;
+            color: #fff; font-size: 14px; margin-bottom: 16px; outline: none;
+        }
+        input:focus, select:focus { border-color: #22d3ee; }
+        select option { background: #1e293b; }
+        .btn-row { display: flex; gap: 10px; margin-top: 8px; }
+        .btn { padding: 10px 22px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-save   { background: #22c55e; color: #fff; }
+        .btn-cancel { background: #334155; color: #fff; text-decoration: none; display: inline-block; }
+        .current-img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover;
+                        margin-bottom: 10px; border: 1px solid #334155; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>✏️ Edit Expense</h1>
+    <form th:action="@{/expenses/edit/{id}(id=${expense.id})}" method="post" enctype="multipart/form-data">
+
+        <label>Amount (₹)</label>
+        <input type="number" name="amount" step="0.01" th:value="${expense.amount}" required/>
+
+        <label>Category</label>
+        <select name="category">
+            <option th:each="cat : ${categories}"
+                    th:value="${cat}" th:text="${cat}"
+                    th:selected="${cat == expense.category}"></option>
+        </select>
+
+        <label>Date</label>
+        <input type="date" name="date" th:value="${expense.date}" required/>
+
+        <label>Description</label>
+        <input type="text" name="description" th:value="${expense.description}" placeholder="Optional"/>
+
+        <div th:if="${expense.billImageUrl != null}">
+            <label>Current Bill Image</label>
+            <img th:src="${expense.billImageUrl}" class="current-img" alt="bill"/>
+        </div>
+
+        <label>Replace Bill Image (optional)</label>
+        <input type="file" name="billImage" accept="image/*"/>
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-save">Save Changes</button>
+            <a th:href="@{/dashboard}" class="btn btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
