@@ -5,6 +5,7 @@ import com.expensetracker.model.RecurringExpense;
 import com.expensetracker.model.User;
 import com.expensetracker.repository.ExpenseRepository;
 import com.expensetracker.repository.RecurringExpenseRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -46,8 +47,7 @@ public class RecurringExpenseService {
 
     public void deleteRecurring(Long id, User user) {
         RecurringExpense r = recurringRepo.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("Not found"));
+                .orElseThrow(() -> new RuntimeException("Not found"));
         if (!r.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Unauthorized");
         }
@@ -55,7 +55,6 @@ public class RecurringExpenseService {
         recurringRepo.save(r);
     }
 
-    // Runs every day at midnight — auto-adds due recurring expenses
     @Scheduled(cron = "0 0 0 * * *")
     public void processRecurringExpenses() {
         LocalDate today = LocalDate.now();
@@ -63,27 +62,25 @@ public class RecurringExpenseService {
                 .findByIsActiveTrueAndNextDueDateLessThanEqual(today);
 
         for (RecurringExpense r : dueList) {
-            // Create actual expense
             Expense expense = new Expense();
             expense.setUser(r.getUser());
             expense.setAmount(r.getAmount());
             expense.setCategory(r.getCategory());
-            expense.setDescription(
-                    "[Auto] " + (r.getDescription() != null
-                            ? r.getDescription() : r.getCategory()));
+            expense.setDescription("[Auto] " +
+                    (r.getDescription() != null
+                            ? r.getDescription()
+                            : r.getCategory()));
             expense.setDate(today);
             expense.setExpenseTime(LocalTime.now()
                     .format(DateTimeFormatter.ofPattern("hh:mm a")));
             expenseRepository.save(expense);
 
-            // Set next due date
-            LocalDate next;
-            switch (r.getFrequency()) {
-                case "DAILY"   -> next = today.plusDays(1);
-                case "WEEKLY"  -> next = today.plusWeeks(1);
-                case "MONTHLY" -> next = today.plusMonths(1);
-                default        -> next = today.plusMonths(1);
-            }
+            LocalDate next = switch (r.getFrequency()) {
+                case "DAILY"   -> today.plusDays(1);
+                case "WEEKLY"  -> today.plusWeeks(1);
+                case "MONTHLY" -> today.plusMonths(1);
+                default        -> today.plusMonths(1);
+            };
             r.setNextDueDate(next);
             recurringRepo.save(r);
         }

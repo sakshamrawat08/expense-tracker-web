@@ -1,18 +1,18 @@
 package com.expensetracker.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
 public class CurrencyService {
 
-    private static final Map<String, String> CURRENCY_SYMBOLS = new HashMap<>();
+    private static final Map<String, String> CURRENCY_SYMBOLS
+            = new LinkedHashMap<>();
 
     static {
-        CURRENCY_SYMBOLS.put("INR", "₹");
+        CURRENCY_SYMBOLS.put("INR", "Rs.");
         CURRENCY_SYMBOLS.put("USD", "$");
         CURRENCY_SYMBOLS.put("EUR", "€");
         CURRENCY_SYMBOLS.put("GBP", "£");
@@ -23,27 +23,26 @@ public class CurrencyService {
         CURRENCY_SYMBOLS.put("AED", "AED");
     }
 
-    // Static fallback rates (in case API is down)
-    private static final Map<String, Double> FALLBACK_RATES = new HashMap<>();
+    private static final Map<String, Double> RATES
+            = new LinkedHashMap<>();
 
     static {
-        FALLBACK_RATES.put("INR", 1.0);
-        FALLBACK_RATES.put("USD", 0.012);
-        FALLBACK_RATES.put("EUR", 0.011);
-        FALLBACK_RATES.put("GBP", 0.0094);
-        FALLBACK_RATES.put("JPY", 1.79);
-        FALLBACK_RATES.put("AUD", 0.018);
-        FALLBACK_RATES.put("CAD", 0.016);
-        FALLBACK_RATES.put("SGD", 0.016);
-        FALLBACK_RATES.put("AED", 0.044);
+        RATES.put("INR", 1.0);
+        RATES.put("USD", 0.012);
+        RATES.put("EUR", 0.011);
+        RATES.put("GBP", 0.0094);
+        RATES.put("JPY", 1.79);
+        RATES.put("AUD", 0.018);
+        RATES.put("CAD", 0.016);
+        RATES.put("SGD", 0.016);
+        RATES.put("AED", 0.044);
     }
 
     public double convert(double amountInINR, String toCurrency) {
         if (toCurrency == null || toCurrency.equals("INR")) {
             return amountInINR;
         }
-        Double rate = FALLBACK_RATES.getOrDefault(toCurrency, 1.0);
-        return amountInINR * rate;
+        return amountInINR * RATES.getOrDefault(toCurrency, 1.0);
     }
 
     public String getSymbol(String currency) {

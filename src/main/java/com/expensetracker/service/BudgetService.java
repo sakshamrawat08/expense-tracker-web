@@ -41,14 +41,12 @@ public class BudgetService {
         return budgetRepository.findByUserAndMonth(user, month);
     }
 
-    // Returns map of category -> {limit, spent, percent}
     public List<Map<String, Object>> getBudgetStatus(User user) {
         String month = LocalDate.now().toString().substring(0, 7);
         List<Budget> budgets = budgetRepository
                 .findByUserAndMonth(user, month);
-        Map<String, Double> categorySpent =
-                new LinkedHashMap<>();
 
+        Map<String, Double> categorySpent = new LinkedHashMap<>();
         expenseRepository.getCategoryTotals(user)
                 .forEach(row -> categorySpent.put(
                         (String) row[0],
@@ -57,25 +55,31 @@ public class BudgetService {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Budget b : budgets) {
             Map<String, Object> item = new LinkedHashMap<>();
-            double spent = categorySpent
+            double spent   = categorySpent
                     .getOrDefault(b.getCategory(), 0.0);
             double percent = (spent / b.getLimitAmount()) * 100;
-            item.put("category",  b.getCategory());
-            item.put("limit",     b.getLimitAmount());
-            item.put("spent",     spent);
-            item.put("percent",   Math.min(percent, 100));
-            item.put("exceeded",  spent > b.getLimitAmount());
-            item.put("id",        b.getId());
+
+            item.put("category", b.getCategory());
+            item.put("limit",    b.getLimitAmount());
+            item.put("spent",    spent);
+            item.put("percent",  Math.min(percent, 100));
+            item.put("exceeded", spent > b.getLimitAmount());
+            item.put("id",       b.getId());
             result.add(item);
 
-            // Send email alert if exceeded
+            // Only send email alert once per check if exceeded
             if (spent > b.getLimitAmount()) {
-                emailService.sendBudgetAlert(
-                        user.getEmail(),
-                        user.getUsername(),
-                        b.getCategory(),
-                        b.getLimitAmount(),
-                        spent);
+                try {
+                    emailService.sendBudgetAlert(
+                            user.getEmail(),
+                            user.getUsername(),
+                            b.getCategory(),
+                            b.getLimitAmount(),
+                            spent);
+                } catch (Exception e) {
+                    System.out.println("Email alert skipped: "
+                            + e.getMessage());
+                }
             }
         }
         return result;
